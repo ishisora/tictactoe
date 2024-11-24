@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+<body>
+    <h1><%= title %></h1>
+    <div>
+        <label for="message">メッセージを入力:</label>
+        <input type="text" id="message" />
+        <button id="sendButton">送信</button>
+    </div>
+    <div id="messages"></div>
+
+    <script>
+        // WebSocketクライアントを作成してサーバーに接続
+        const socket = new WebSocket('ws://localhost:3030');
+
+        // 接続ができた時にトリガーされる
+        socket.addEventListener('open', () => {
+            console.log('Connected to server');
+        });
+
+        // サーバーのメッセージが受信された時にトリガーされる
+        socket.addEventListener('message', (event) => {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `Received: ${event.data}`;
+            messagesDiv.appendChild(messageElement);
+        });
+
+        // 接続中止
+        socket.addEventListener('close', () => {
+            console.log('Connection closed');
+        });
+
+        // メッセージ送信
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value;
+            if (message) {
+                socket.send(message); // 入力したメッセージをサーバーに送信
+                messageInput.value = ''; // フィールドをクリア
+            }
+        });
+    </script>
+</body>
+</html>

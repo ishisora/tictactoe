@@ -17,6 +17,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
+// WebSocketサーバーを実装
+const WebSocket = require('ws');
+const wsserver = new WebSocket.Server({ port: 3030 });
+
+wsserver.on('connection', (socket) => {
+  console.log('Client connected');
+
+  socket.on('message', (data) => {
+    console.log(`Received: ${data}`);
+
+    wsserver.clients.forEach((client) => {
+      if (client !== socket && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
+  });
+
+  socket.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     next(createError(404));
