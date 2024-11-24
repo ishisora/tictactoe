@@ -3,9 +3,7 @@ const router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('index.ejs', { title: 'tictactoe' });
+    res.render('tictactoe.ejs', { title: 'tictactoe' });
 });
-
-router.use('/tictactoe', require('./tictactoe.js'));
 
 module.exports = router;
