@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
 </head>
+
 <body>
-    <h1><%= title %></h1>
+    <h1>
+        <%= title %>
+    </h1>
     <div>
         <label for="message">メッセージを入力:</label>
         <input type="text" id="message" />
@@ -16,36 +22,39 @@
     <div id="messages"></div>
 
     <script>
-        // WebSocketクライアントを作成してサーバーに接続
-        const socket = new WebSocket('ws://localhost:3030');
+        const ws = new WebSocket('ws://localhost:3000');
 
-        // 接続ができた時にトリガーされる
-        socket.addEventListener('open', () => {
+        ws.addEventListener('open', () => {
             console.log('Connected to server');
         });
 
-        // サーバーのメッセージが受信された時にトリガーされる
-        socket.addEventListener('message', (event) => {
+        ws.addEventListener('message', (event) => {
             const messagesDiv = document.getElementById('messages');
             const messageElement = document.createElement('div');
             messageElement.textContent = `Received: ${event.data}`;
             messagesDiv.appendChild(messageElement);
         });
 
-        // 接続中止
-        socket.addEventListener('close', () => {
+        ws.addEventListener('close', () => {
             console.log('Connection closed');
         });
 
-        // メッセージ送信
         document.getElementById('sendButton').addEventListener('click', () => {
+            // サーバーとの通信
             const messageInput = document.getElementById('message');
             const message = messageInput.value;
             if (message) {
-                socket.send(message); // 入力したメッセージをサーバーに送信
-                messageInput.value = ''; // フィールドをクリア
+                ws.send(message);
+                messageInput.value = '';
             }
+            // 自身の処理
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `Send: ${message}`;
+            messagesDiv.appendChild(messageElement);
+            console.log(`send: ${message}`);
         });
     </script>
 </body>
+
 </html>

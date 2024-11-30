@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const logger = require('morgan');
 const indexRouter = require('./routes/index.js');
-const WebSocket = require('ws');
 
 const app = express();
 
@@ -17,11 +16,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-
-// WebSocketサーバーを実装
-const wsserver = new WebSocket.Server({ port: 3030 });
-const handleConnection = require('./websocketserver/websocket.js');
-handleConnection(wsserver);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
