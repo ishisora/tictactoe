@@ -24,23 +24,28 @@ const server = http.createServer(app);
 
 // WebSocket
 const wss = new WebSocket.Server({ server });
-//const wssHandler = require('../websocketserver/websocket.js');
-//wssHandler(wss);
+let clientNumber = 0;
 wss.on('connection', (ws) => {
-  ws.on('error', console.error);
+  clientNumber++;
+  console.log(`Client connected ${clientNumber}`);
+  ws.send(JSON.stringify({ type: 'init', message: '1' }));
 
-  ws.on('message', (data) => {
-    console.log(`Received: ${data}`);
+  ws.addEventListener('error', console.error);
+
+  ws.addEventListener('close', () => {
+    console.log('Client disconnected');
+  });
+
+  ws.addEventListener('message', (event) => {
+    const data = event.data;
+    console.log(`Received: ${JSON.stringify(data)}`);
+    const message = JSON.parse(data);
 
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
+        client.send(message.message);
       }
     });
-  });
-
-  ws.on('close', () => {
-    console.log('Client disconnected');
   });
 });
 

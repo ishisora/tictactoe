@@ -4,34 +4,8 @@ const comment = document.querySelector(".comment");
 const reset = document.querySelector(".reset");
 const ws = new WebSocket('ws://localhost:3000');
 
-ws.addEventListener('open', () => {
-    console.log('Connected to server');
-});
-
-ws.addEventListener('message', (event) => {
-    console.log(`Received: ${event.data}`);
-    const i = event.data;
-    if (squares[i].textContent == "") {
-        if (player == "o") {
-            squares[i].textContent = "o"
-            squares[i].classList.add("o");
-            player = "x";
-        } else {
-            squares[i].textContent = "x"
-            squares[i].classList.add("x");
-            player = "o";
-        }
-    }
-    // WebSocketサーバーとの通信
-    judge();
-});
-
-ws.addEventListener('close', () => {
-    console.log('Connection closed');
-});
-
-squares.forEach((square) => {
-    square.addEventListener("click", handleSquareClick);
+squares.forEach((square, index) => {
+    square.addEventListener("click", handleSquareClick(index));
 });
 
 reset.addEventListener("click", handleResetClick);
@@ -76,39 +50,25 @@ function judge() {
     }
 }
 
-function handleSquareClick(event) {
-
-
-    let i = -1;
-
-    for (let j = 0; j < squares.length; j++) {
-        if (squares[j] === event.target) {
-            console.log(j);
-            i = j;
-        }
-    }
-
-    if (i === -1) {
-        console.error('存在しないsquareへのアクセス')
-        return;
-    }
-
-    console.log(squares[i]);
-    if (squares[i].textContent == "") {
-        if (player == "o") {
-            squares[i].textContent = "o"
-            squares[i].classList.add("o");
-            player = "x";
-        } else {
-            squares[i].textContent = "x"
-            squares[i].classList.add("x");
-            player = "o";
-        }
-    }
+function handleSquareClick(index) {
+    console.log(squares[index]);
+    //if (squares[index].textContent == "") {
+    //    if (player == "o") {
+    //        squares[index].textContent = "o"
+    //        squares[index].classList.add("o");
+    //        player = "x";
+    //    } else {
+    //        squares[index].textContent = "x"
+    //        squares[index].classList.add("x");
+    //        player = "o";
+    //    }
+    //}
     // WebSocketサーバーとの通信
-    ws.send(i);
-    console.log(`send: ${i}`);
-    judge();
+    //const json = JSON.stringify({ type: 'init', message: i });
+    const json = JSON.stringify({ type: 'playing', message: index });
+    //ws.send(json);
+    console.log(`send: ${index}`);
+    //judge();
 }
 
 function handleResetClick() {
@@ -123,3 +83,37 @@ function handleResetClick() {
         });
     });
 }
+
+ws.addEventListener('open', () => {
+    console.log('Connected to server');
+});
+
+ws.addEventListener('message', (event) => {
+    const message = JSON.parse(event.data);
+    console.log(`Received: ${JSON.stringify(message)}`);
+    switch (message.type) {
+        case 'init':
+            console.log(`init: ${message.message}`);
+            break;
+        case 'playing':
+            console.log(`playing: ${message.message}`);
+            const i = message.message;
+            if (squares[i].textContent == "") {
+                if (player == "o") {
+                    squares[i].textContent = "o"
+                    squares[i].classList.add("o");
+                    player = "x";
+                } else {
+                    squares[i].textContent = "x"
+                    squares[i].classList.add("x");
+                    player = "o";
+                }
+            }
+            // WebSocketサーバーとの通信
+            judge();
+    }
+});
+
+ws.addEventListener('close', () => {
+    console.log('Connection closed');
+});
