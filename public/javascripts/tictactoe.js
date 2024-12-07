@@ -5,12 +5,16 @@ const reset = document.querySelector(".reset");
 const ws = new WebSocket('ws://localhost:3000');
 
 squares.forEach((square, index) => {
-    square.addEventListener("click", handleSquareClick(index));
+    square.addEventListener("click", (event) => {
+        handleSquareClick(event, index);
+    });
 });
 
-reset.addEventListener("click", handleResetClick);
+reset.addEventListener("click", () => {
+    handleResetClick()
+});
 
-let player = "o";
+let player = "";
 
 function judge() {
     const lines = [
@@ -50,25 +54,14 @@ function judge() {
     }
 }
 
-function handleSquareClick(index) {
+function handleSquareClick(event, index) {
     console.log(squares[index]);
-    //if (squares[index].textContent == "") {
-    //    if (player == "o") {
-    //        squares[index].textContent = "o"
-    //        squares[index].classList.add("o");
-    //        player = "x";
-    //    } else {
-    //        squares[index].textContent = "x"
-    //        squares[index].classList.add("x");
-    //        player = "o";
-    //    }
-    //}
+
     // WebSocketサーバーとの通信
-    //const json = JSON.stringify({ type: 'init', message: i });
-    const json = JSON.stringify({ type: 'playing', message: index });
-    //ws.send(json);
-    console.log(`send: ${index}`);
-    //judge();
+    const json = JSON.stringify({ type: 'playing', index: index, player: player });
+    ws.send(json);
+
+    console.log(`send: ${player}`);
 }
 
 function handleResetClick() {
@@ -94,22 +87,20 @@ ws.addEventListener('message', (event) => {
     switch (message.type) {
         case 'init':
             console.log(`init: ${message.message}`);
+            player = message.message;
+            console.log(player);
             break;
         case 'playing':
             console.log(`playing: ${message.message}`);
-            const i = message.message;
-            if (squares[i].textContent == "") {
-                if (player == "o") {
+            for (let i = 0; i < message.squares.length; i++) {
+                if (message.squares[i] == "o") {
                     squares[i].textContent = "o"
                     squares[i].classList.add("o");
-                    player = "x";
-                } else {
+                } else if (message.squares[i] == "x") {
                     squares[i].textContent = "x"
                     squares[i].classList.add("x");
-                    player = "o";
                 }
             }
-            // WebSocketサーバーとの通信
             judge();
     }
 });
