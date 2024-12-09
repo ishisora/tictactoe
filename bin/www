@@ -43,26 +43,39 @@ wss.on('connection', (ws) => {
     });
 
     ws.addEventListener('message', (event) => {
-        const data = event.data;
-        console.log(`Received: ${JSON.stringify(data)}`);
+        console.log(`Received: ${JSON.stringify(event.data)}`);
         console.log(nextplayer);
-        const message = JSON.parse(data);
+        const message = JSON.parse(event.data);
 
-        if (message.player === nextplayer) {
-            squares[message.index] = message.player;
+        switch (message.type) {
+            case 'playing':
+                if (message.type === 'playing') {
+                    if (message.player === nextplayer && squares[message.index] === '') {
+                        squares[message.index] = message.player;
 
-            wss.clients.forEach((client) => {
-                //if (client !== ws && client.readyState === WebSocket.OPEN) {
-                //client.send(message.message);
-                client.send(JSON.stringify({ type: 'playing', message: message.index, squares: squares }));
-                //}
-            });
+                        wss.clients.forEach((client) => {
+                            //if (client !== ws && client.readyState === WebSocket.OPEN) { }
+                            client.send(JSON.stringify({ type: 'playing', message: message.index, squares: squares }));
+                        });
 
-            if (nextplayer === 'o') {
-                nextplayer = 'x';
-            } else {
+                        if (nextplayer === 'o') {
+                            nextplayer = 'x';
+                        } else {
+                            nextplayer = 'o';
+                        }
+                    } else {
+                        console.log("!(message.player === nextplayer && squares[message.index] === '')")
+                    }
+
+                }
+                break;
+            case 'reset':
+                console.log('message.type = reset');
+                wss.clients.forEach((client) => {
+                    client.send(JSON.stringify({ type: 'reset' }));
+                });
+                squares = ['', '', '', '', '', '', '', '', ''];
                 nextplayer = 'o';
-            }
         }
     });
 });

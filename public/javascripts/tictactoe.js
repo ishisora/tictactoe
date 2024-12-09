@@ -65,16 +65,11 @@ function handleSquareClick(event, index) {
 }
 
 function handleResetClick() {
-    squares.forEach((square) => {
-        square.textContent = "";
-        square.classList.remove("o");
-        square.classList.remove("x");
-        player = "o";
-        comment.textContent = "Result: ";
-        squares.forEach((square) => {
-            square.addEventListener("click", handleSquareClick);
-        });
-    });
+    // WebSocketサーバーとの通信
+    const json = JSON.stringify({ type: 'reset' });
+    ws.send(json);
+
+    console.log(`send: ${player}`);
 }
 
 ws.addEventListener('open', () => {
@@ -86,9 +81,8 @@ ws.addEventListener('message', (event) => {
     console.log(`Received: ${JSON.stringify(message)}`);
     switch (message.type) {
         case 'init':
-            console.log(`init: ${message.message}`);
             player = message.message;
-            console.log(player);
+            console.log(`init: ${player}`);
             break;
         case 'playing':
             console.log(`playing: ${message.message}`);
@@ -102,6 +96,15 @@ ws.addEventListener('message', (event) => {
                 }
             }
             judge();
+            break;
+        case 'reset':
+            squares.forEach((square) => {
+                square.textContent = "";
+                square.classList.remove("o");
+                square.classList.remove("x");
+                comment.textContent = "Result: ";
+            });
+            break;
     }
 });
 
