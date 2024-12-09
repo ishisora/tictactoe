@@ -8,12 +8,9 @@ const app = require('../app');
 const debug = require('debug')('tictactoe:server');
 const http = require('http');
 const WebSocket = require('ws');
+const { hostname, port } = require('../config/config');
 
-/**
- * Get port from environment and store in Express.
- */
-
-const port = normalizePort(process.env.PORT || '3000');
+app.set('hostname', hostname);
 app.set('port', port);
 
 /**
@@ -84,31 +81,14 @@ wss.on('connection', (ws) => {
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port, '127.0.0.1', () => {
+server.listen(port, hostname, () => {
     console.log(`debug log: ${JSON.stringify(server.address())}`);
 });
+//server.listen(port, () => {
+//    console.log(`debug log: ${JSON.stringify(server.address())}`);
+//});
 server.on('error', onError);
 server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-    const port = parseInt(val, 10);
-
-    if (isNaN(port)) {
-        // named pipe
-        return val;
-    }
-
-    if (port >= 0) {
-        // port number
-        return port;
-    }
-
-    return false;
-}
 
 /**
  * Event listener for HTTP server "error" event.

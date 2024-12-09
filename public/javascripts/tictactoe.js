@@ -2,7 +2,7 @@ const board = document.querySelector(".board");
 const squares = document.querySelectorAll(".square");
 const comment = document.querySelector(".comment");
 const reset = document.querySelector(".reset");
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket(`ws://${hostname}:${port}`);
 
 squares.forEach((square, index) => {
     square.addEventListener("click", (event) => {
