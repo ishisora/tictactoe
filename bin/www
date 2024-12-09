@@ -25,6 +25,8 @@ let clientNumber = 0;
 let squares = ['', '', '', '', '', '', '', '', ''];
 let nextplayer = "o";
 wss.on('connection', (ws) => {
+    //wss.on('connection', (ws, req) => {
+    //console.log(req.session.userId);
     clientNumber++;
     console.log(`Client connected ${clientNumber}`);
     if (clientNumber % 2 === 1) {

@@ -2,9 +2,20 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const logger = require('morgan');
-const indexRouter = require('./routes/index.js');
+const cookieSession = require("cookie-session");
+const cookieParser = require('cookie-parser'); // req.cookies[cookieName]使うなら
 
 const app = express();
+
+app.use(
+    cookieSession({
+        name: "session",
+        secret: 'secret-key', // 秘密鍵の値
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    })
+);
+
+app.use(cookieParser()); // req.cookies[cookieName]使うなら
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -15,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/', require('./routes/index.js'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
