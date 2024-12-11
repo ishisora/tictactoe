@@ -24,24 +24,37 @@ const wss = new WebSocket.Server({ server });
 
 const sessionMiddleware = app.get('sessionMiddleware');
 
-let clientNumber = 0;
 let squares = ['', '', '', '', '', '', '', '', ''];
 let nextplayer = "o";
+
+let room = {
+    first: "",
+    second: ""
+};
 
 wss.on('connection', (ws, req) => {
     sessionMiddleware(req, {}, () => {
         console.log(req.session);
+        if (!req.session.userId) {
+            console.log('req.session.userIdの値がない')
+        } else if (room.first === "") {
+            room.first = req.session.userId;
+        } else if (room.second === "") {
+            room.second = req.session.userId;
+        }
+        console.log(room);
         // sessionがあるならそのデータの処理をする
         // ないなら新しく処理する
+        if (req.session.userId === room.first) {
+            console.log(`Client connected o`);
+            ws.send(JSON.stringify({ type: 'init', message: 'o', squares: squares }));
+        } else if (req.session.userId === room.second) {
+            console.log(`Client connected x`);
+            ws.send(JSON.stringify({ type: 'init', message: 'x', squares: squares }));
+        } else {
+            console.log('3人目以降の処理はまだ書いていない');
+        }
     });
-
-    clientNumber++;
-    console.log(`Client connected ${clientNumber}`);
-    if (clientNumber % 2 === 1) {
-        ws.send(JSON.stringify({ type: 'init', message: 'o' }));
-    } else {
-        ws.send(JSON.stringify({ type: 'init', message: 'x' }));
-    }
 
     ws.addEventListener('error', console.error);
 

@@ -83,6 +83,15 @@ ws.addEventListener('message', (event) => {
         case 'init':
             player = message.message;
             console.log(`init: ${player}`);
+            for (let i = 0; i < message.squares.length; i++) {
+                if (message.squares[i] == "o") {
+                    squares[i].textContent = "o"
+                    squares[i].classList.add("o");
+                } else if (message.squares[i] == "x") {
+                    squares[i].textContent = "x"
+                    squares[i].classList.add("x");
+                }
+            }
             break;
         case 'playing':
             console.log(`playing: ${message.message}`);
