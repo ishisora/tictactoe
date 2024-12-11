@@ -1,21 +1,19 @@
 const createError = require('http-errors');
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
 const logger = require('morgan');
-const cookieSession = require("cookie-session");
-const cookieParser = require('cookie-parser'); // req.cookies[cookieName]使うなら
 
 const app = express();
 
-app.use(
-    cookieSession({
-        name: "session",
-        secret: 'secret-key', // 秘密鍵の値
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    })
-);
+const sessionMiddleware = session({
+    secret: 'secret-key',
+    resave: false,
+    saveUninitialized: true,
+});
 
-app.use(cookieParser()); // req.cookies[cookieName]使うなら
+app.use(sessionMiddleware);
+app.set('sessionMiddleware', sessionMiddleware);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

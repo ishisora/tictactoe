@@ -21,12 +21,20 @@ const server = http.createServer(app);
 
 // WebSocket
 const wss = new WebSocket.Server({ server });
+
+const sessionMiddleware = app.get('sessionMiddleware');
+
 let clientNumber = 0;
 let squares = ['', '', '', '', '', '', '', '', ''];
 let nextplayer = "o";
-wss.on('connection', (ws) => {
-    //wss.on('connection', (ws, req) => {
-    //console.log(req.session.userId);
+
+wss.on('connection', (ws, req) => {
+    sessionMiddleware(req, {}, () => {
+        console.log(req.session);
+        // sessionがあるならそのデータの処理をする
+        // ないなら新しく処理する
+    });
+
     clientNumber++;
     console.log(`Client connected ${clientNumber}`);
     if (clientNumber % 2 === 1) {
