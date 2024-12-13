@@ -9,6 +9,8 @@ const debug = require('debug')('tictactoe:server');
 const http = require('http');
 const WebSocket = require('ws');
 const { hostname, port } = require('../config/config');
+const rooms = require('../service/rooms.js');
+const users = require('../service/users.js');
 
 app.set('hostname', hostname);
 app.set('port', port);
@@ -24,36 +26,17 @@ const wss = new WebSocket.Server({ server });
 
 const sessionMiddleware = app.get('sessionMiddleware');
 
-let clientNumber = 0;
-let squares = ['', '', '', '', '', '', '', '', ''];
-let nextplayer = "o";
-
-/*
-let rooms = {};
-
-let room = {
-    players: {
-        o: "session0",
-        x: "session1"
-    },
-    states: {
-        squares: ['', '', '', '', '', '', '', '', ''],
-        nowPlayer: 'o',
-    }
-}
-*/
-
 wss.on('connection', (ws, req) => {
-    const rooms = require('../service/rooms.js');
-    const users = require('../service/users.js');
+    console.log("wss.clients.size = ", wss.clients.size);
+    console.log(`Client connected`);
     console.log(`roomsdebug2: ${JSON.stringify(rooms)}`);
     console.log(`usersdebug2: ${JSON.stringify(users)}`);
-    clientNumber++;
-    console.log(`Client connected ${clientNumber}`);
     sessionMiddleware(req, {}, () => {
         console.log(req.session);
         if (users[req.session.userId]) {
             const room = users[req.session.userId];
+            rooms[room].players.websockets.add(ws);
+            console.log(room, "websockets.size = ", rooms[room].players.websockets.size);
             console.log(`roomdebug1${room}`);
             let player = '';
             if (rooms[room].players.o === req.session.userId) {
@@ -61,30 +44,11 @@ wss.on('connection', (ws, req) => {
             } else {
                 player = 'x';
             }
-            squares = rooms[room].states.squares;
+            const squares = rooms[room].states.squares;
             ws.send(JSON.stringify({ type: 'init', message: player, squares: squares }));
         } else {
             console.log('req.session.userIdの値がない');
         }
-        /*
-        } else if (room.first === "") {
-            room.first = req.session.userId;
-        } else if (room.second === "") {
-            room.second = req.session.userId;
-        }
-        console.log(room);
-        // sessionがあるならそのデータの処理をする
-        // ないなら新しく処理する
-        if (req.session.userId === room.first) {
-            console.log(`Client connected o`);
-            ws.send(JSON.stringify({ type: 'init', message: 'o', squares: squares }));
-        } else if (req.session.userId === room.second) {
-            console.log(`Client connected x`);
-            ws.send(JSON.stringify({ type: 'init', message: 'x', squares: squares }));
-        } else {
-            console.log('3人目以降の処理はまだ書いていない');
-        }
-        */
     });
 
     ws.addEventListener('error', console.error);
@@ -95,37 +59,40 @@ wss.on('connection', (ws, req) => {
 
     ws.addEventListener('message', (event) => {
         console.log(`Received: ${JSON.stringify(event.data)}`);
-        console.log(nextplayer);
+        console.log("req.session = ", req.session);
+
+        const room = users[req.session.userId];
+
         const message = JSON.parse(event.data);
 
         switch (message.type) {
             case 'playing':
                 if (message.type === 'playing') {
-                    if (message.player === nextplayer && squares[message.index] === '') {
-                        squares[message.index] = message.player;
+                    if (message.player === rooms[room].states.nowPlayer && rooms[room].states.squares[message.index] === '') {
+                        rooms[room].states.squares[message.index] = message.player;
 
-                        wss.clients.forEach((client) => {
-                            client.send(JSON.stringify({ type: 'playing', message: message.index, squares: squares }));
+                        rooms[room].players.websockets.forEach((ws) => {
+                            ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares }));
                         });
 
-                        if (nextplayer === 'o') {
-                            nextplayer = 'x';
+                        if (rooms[room].states.nowPlayer === 'o') {
+                            rooms[room].states.nowPlayer = 'x';
                         } else {
-                            nextplayer = 'o';
+                            rooms[room].states.nowPlayer = 'o';
                         }
                     } else {
-                        console.log("!(message.player === nextplayer && squares[message.index] === '')")
+                        console.log("!(message.player === rooms[room].states.nowPlayer && squares[message.index] === '')")
                     }
 
                 }
                 break;
             case 'reset':
                 console.log('message.type = reset');
-                wss.clients.forEach((client) => {
-                    client.send(JSON.stringify({ type: 'reset' }));
+                rooms[room].players.websockets.forEach((ws) => {
+                    ws.send(JSON.stringify({ type: 'reset' }));
                 });
-                squares = ['', '', '', '', '', '', '', '', ''];
-                nextplayer = 'o';
+                rooms[room].states.squares = ['', '', '', '', '', '', '', '', ''];
+                rooms[room].states.nowPlayer = 'o';
         }
     });
 });
@@ -137,9 +104,7 @@ wss.on('connection', (ws, req) => {
 server.listen(port, hostname, () => {
     console.log(`debug log: ${JSON.stringify(server.address())}`);
 });
-//server.listen(port, () => {
-//    console.log(`debug log: ${JSON.stringify(server.address())}`);
-//});
+
 server.on('error', onError);
 server.on('listening', onListening);
 

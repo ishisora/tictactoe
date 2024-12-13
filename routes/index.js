@@ -24,7 +24,8 @@ router.post('/', function (req, res, next) {
         rooms[keyword] = {
             players: {
                 o: req.session.userId,
-                x: ""
+                x: "",
+                websockets: new Set()
             },
             states: {
                 squares: ['', '', '', '', '', '', '', '', ''],
