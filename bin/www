@@ -45,19 +45,28 @@ let room = {
 
 wss.on('connection', (ws, req) => {
     const rooms = require('../service/rooms.js');
+    const users = require('../service/users.js');
     console.log(`roomsdebug2: ${JSON.stringify(rooms)}`);
+    console.log(`usersdebug2: ${JSON.stringify(users)}`);
     clientNumber++;
     console.log(`Client connected ${clientNumber}`);
-    if (clientNumber % 2 === 1) {
-        ws.send(JSON.stringify({ type: 'init', message: 'o', squares: squares }));
-    } else {
-        ws.send(JSON.stringify({ type: 'init', message: 'x', squares: squares }));
-    }
     sessionMiddleware(req, {}, () => {
         console.log(req.session);
+        if (users[req.session.userId]) {
+            const room = users[req.session.userId];
+            console.log(`roomdebug1${room}`);
+            let player = '';
+            if (rooms[room].players.o === req.session.userId) {
+                player = 'o';
+            } else {
+                player = 'x';
+            }
+            squares = rooms[room].states.squares;
+            ws.send(JSON.stringify({ type: 'init', message: player, squares: squares }));
+        } else {
+            console.log('req.session.userIdの値がない');
+        }
         /*
-        if (!req.session.userId) {
-            console.log('req.session.userIdの値がない')
         } else if (room.first === "") {
             room.first = req.session.userId;
         } else if (room.second === "") {
