@@ -17,6 +17,16 @@
     <div>
         <%= session %>
     </div>
+    <div>
+        <form action="/" method="post">
+            <label>あいことば</label>
+            <input required type="text" name="keyword" />
+            <input type="submit" value="マッチ" />
+        </form>
+    </div>
+    <div>
+        <%= message %>
+    </div>
 </body>
 
 </html>

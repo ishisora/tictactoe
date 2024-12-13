@@ -28,12 +28,24 @@ let clientNumber = 0;
 let squares = ['', '', '', '', '', '', '', '', ''];
 let nextplayer = "o";
 
+/*
+let rooms = {};
+
 let room = {
-    first: "",
-    second: ""
-};
+    players: {
+        o: "session0",
+        x: "session1"
+    },
+    states: {
+        squares: ['', '', '', '', '', '', '', '', ''],
+        nowPlayer: 'o',
+    }
+}
+*/
 
 wss.on('connection', (ws, req) => {
+    const rooms = require('../service/rooms.js');
+    console.log(`roomsdebug2: ${JSON.stringify(rooms)}`);
     clientNumber++;
     console.log(`Client connected ${clientNumber}`);
     if (clientNumber % 2 === 1) {
