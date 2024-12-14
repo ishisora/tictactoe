@@ -47,6 +47,5 @@ router.post('/', function (req, res, next) {
 });
 
 router.use('/tictactoe', require('./tictactoe.js'));
-router.use('/websocket', require('./websocket.js'));
 
 module.exports = router;
