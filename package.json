@@ -6,17 +6,12 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "cookie": "^1.0.2",
-    "cookie-parser": "~1.4.4",
-    "cookie-session": "^2.1.0",
-    "cookie-signature": "^1.2.2",
-    "debug": "~2.6.9",
-    "ejs": "~2.6.1",
+    "ejs": "^3.1.10",
     "express": "~4.16.1",
     "express-session": "^1.18.1",
-    "express-ws": "^5.0.2",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "ws": "^8.18.0"
   }
 }
