@@ -63,22 +63,23 @@ function createWebSocketServer(server, sessionMiddleware) {
                         break;
                     case 'init':
                         if (rooms[room].players.o.id == req.session.userId) {
-                            ws.send(JSON.stringify({ type: 'init', message: 'o', squares: rooms[room].states.squares }));
+                            ws.send(JSON.stringify({ type: 'init', message: 'o', squares: rooms[room].states.squares, nowPlayer: rooms[room].states.nowPlayer }));
                         } else {
-                            ws.send(JSON.stringify({ type: 'init', message: 'x', squares: rooms[room].states.squares }));
+                            ws.send(JSON.stringify({ type: 'init', message: 'x', squares: rooms[room].states.squares, nowPlayer: rooms[room].states.nowPlayer }));
                         }
                         break;
                     case 'playing':
                         if (message.player === rooms[room].states.nowPlayer && rooms[room].states.squares[message.index] === '') {
                             rooms[room].states.squares[message.index] = message.player;
-                            judge(room);
-                            rooms[room].players.o.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares }));
-                            rooms[room].players.x.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares }));
-
                             if (rooms[room].states.nowPlayer === 'o') {
                                 rooms[room].states.nowPlayer = 'x';
                             } else {
                                 rooms[room].states.nowPlayer = 'o';
+                            }
+                            rooms[room].players.o.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares, nowPlayer: rooms[room].states.nowPlayer }));
+                            rooms[room].players.x.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares, nowPlayer: rooms[room].states.nowPlayer }));
+                            if (judge(room)) {
+                                return;
                             }
                         }
                         break;
@@ -89,8 +90,13 @@ function createWebSocketServer(server, sessionMiddleware) {
                         rooms[room].states.nowPlayer = 'o';
                         break;
                     case 'finish':
-                        rooms[room].players.o.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
-                        rooms[room].players.x.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
+                        if (req.session.userId === rooms[room].players.o.id) {
+                            rooms[room].players.o.ws.send(JSON.stringify({ type: 'finish', message: 'ゲームを終了しました。' }));
+                            rooms[room].players.x.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
+                        } else {
+                            rooms[room].players.o.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
+                            rooms[room].players.x.ws.send(JSON.stringify({ type: 'finish', message: 'ゲームを終了しました。' }));
+                        }
                         break;
                 }
             });
@@ -123,7 +129,7 @@ function judge(room) {
                 rooms[room].players.o.ws.send(JSON.stringify({ type: 'result', message: '結果: 後攻の勝利' }));
                 rooms[room].players.x.ws.send(JSON.stringify({ type: 'result', message: '結果: 後攻の勝利' }));
             }
-            return;
+            return true;
         }
     }
     let cnt = 0;
@@ -134,7 +140,9 @@ function judge(room) {
         rooms[room].states.state = 'result';
         rooms[room].players.o.ws.send(JSON.stringify({ type: 'result', message: '結果: 引き分け' }));
         rooms[room].players.x.ws.send(JSON.stringify({ type: 'result', message: '結果: 引き分け' }));
+        return true;
     }
+    return false;
 }
 
 module.exports = createWebSocketServer;

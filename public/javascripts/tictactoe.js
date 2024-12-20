@@ -1,5 +1,6 @@
 const board = document.querySelector(".board");
 const squares = document.querySelectorAll(".square");
+const role = document.querySelector(".role");
 const comment = document.querySelector(".comment");
 const reset = document.querySelector(".reset");
 const finish = document.querySelector(".finish");
@@ -53,6 +54,7 @@ ws.addEventListener('message', (event) => {
         case 'init':
             player = message.message;
             console.log(`init: ${player}`);
+            role.textContent = "あなたは" + player + "です";
             for (let i = 0; i < message.squares.length; i++) {
                 if (message.squares[i] == "o") {
                     squares[i].textContent = "o"
@@ -62,6 +64,7 @@ ws.addEventListener('message', (event) => {
                     squares[i].classList.add("x");
                 }
             }
+            comment.textContent = message.nowPlayer + "の番です";
             break;
         case 'playing':
             console.log(`playing: ${message.message}`);
@@ -74,9 +77,11 @@ ws.addEventListener('message', (event) => {
                     squares[i].classList.add("x");
                 }
             }
+            comment.textContent = message.nowPlayer + "の番です";
             break;
         case 'result':
-            comment.textContent += message.message;
+            role.textContent = "";
+            comment.textContent = message.message;
             squares.forEach((square) => {
                 square.removeEventListener("click", handleSquareClick);
             });
