@@ -15,6 +15,7 @@ const room = {
         },
     },
     states: {
+        state: 'wait',
         squares: ['', '', '', '', '', '', '', '', ''],
         nowPlayer: 'o',
     }

@@ -41,7 +41,6 @@ function createWebSocketServer(server, sessionMiddleware) {
                         if (userToRoom.has(req.session.userId)) {
                             if (rooms[room].players.x.id == "") {
                                 rooms[room].players.o.ws = ws;
-                                let player = '';
                                 if (rooms[room].players.o.id === req.session.userId) {
                                     player = 'o';
                                 } else {
@@ -56,6 +55,7 @@ function createWebSocketServer(server, sessionMiddleware) {
                                 } else {
                                     player = 'x';
                                 }
+                                rooms[room].states.state = 'playing';
                                 rooms[room].players.o.ws.send(JSON.stringify({ type: 'match' }));
                                 rooms[room].players.x.ws.send(JSON.stringify({ type: 'match' }));
                             }
@@ -71,6 +71,7 @@ function createWebSocketServer(server, sessionMiddleware) {
                     case 'playing':
                         if (message.player === rooms[room].states.nowPlayer && rooms[room].states.squares[message.index] === '') {
                             rooms[room].states.squares[message.index] = message.player;
+                            judge(room);
                             rooms[room].players.o.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares }));
                             rooms[room].players.x.ws.send(JSON.stringify({ type: 'playing', message: message.index, squares: rooms[room].states.squares }));
 
@@ -82,9 +83,8 @@ function createWebSocketServer(server, sessionMiddleware) {
                         }
                         break;
                     case 'reset':
-                        rooms[room].players.websockets.forEach((ws) => {
-                            ws.send(JSON.stringify({ type: 'reset' }));
-                        });
+                        rooms[room].players.o.ws.send(JSON.stringify({ type: 'reset' }));
+                        rooms[room].players.x.ws.send(JSON.stringify({ type: 'reset' }));
                         rooms[room].states.squares = ['', '', '', '', '', '', '', '', ''];
                         rooms[room].states.nowPlayer = 'o';
                         break;
@@ -92,6 +92,45 @@ function createWebSocketServer(server, sessionMiddleware) {
             });
         });
     });
+}
+
+function judge(room) {
+    // rooms[room].states.squaresでゲーム盤面の判定
+    const lines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const [a, b, c] = lines[i];
+        const [aa, bb, cc] = [rooms[room].states.squares[a], rooms[room].states.squares[b], rooms[room].states.squares[c]];
+        if (aa && aa === bb && aa === cc) {
+            if (aa == "o") {
+                rooms[room].states.state = 'result';
+                rooms[room].players.o.ws.send(JSON.stringify({ type: 'result', message: '結果: 先行の勝利' }));
+                rooms[room].players.x.ws.send(JSON.stringify({ type: 'result', message: '結果: 先行の勝利' }));
+            } else {
+                rooms[room].states.state = 'result';
+                rooms[room].players.o.ws.send(JSON.stringify({ type: 'result', message: '結果: 後攻の勝利' }));
+                rooms[room].players.x.ws.send(JSON.stringify({ type: 'result', message: '結果: 後攻の勝利' }));
+            }
+            return;
+        }
+    }
+    let cnt = 0;
+    rooms[room].states.squares.forEach((square) => {
+        if (square) cnt++;
+    });
+    if (cnt === 9) {
+        rooms[room].states.state = 'result';
+        rooms[room].players.o.ws.send(JSON.stringify({ type: 'result', message: '結果: 引き分け' }));
+        rooms[room].players.x.ws.send(JSON.stringify({ type: 'result', message: '結果: 引き分け' }));
+    }
 }
 
 module.exports = createWebSocketServer;

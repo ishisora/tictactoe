@@ -4,57 +4,14 @@ const comment = document.querySelector(".comment");
 const reset = document.querySelector(".reset");
 const ws = new WebSocket(`ws://${hostname}:${port}`);
 
-squares.forEach((square, index) => {
-    square.addEventListener("click", (event) => {
-        handleSquareClick(event, index);
-    });
-});
-
-reset.addEventListener("click", () => {
-    handleResetClick()
-});
+for (const square of squares) {
+    square.addEventListener("click", handleSquareClick);
+}
 
 let player = "";
 
-function judge() {
-    const lines = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-        const [a, b, c] = lines[i];
-        const [aa, bb, cc] = [squares[a].textContent, squares[b].textContent, squares[c].textContent];
-        if (aa && aa === bb && aa === cc) {
-            if (aa == "o") {
-                comment.textContent += "先行の勝利";
-            } else {
-                comment.textContent += "後攻の勝利";
-            }
-            squares.forEach((square) => {
-                square.removeEventListener("click", handleSquareClick);
-            });
-            return;
-        }
-    }
-    let cnt = 0;
-    squares.forEach((square) => {
-        if (square.textContent) cnt++;
-    });
-    if (cnt === 9) {
-        comment.textContent += "引き分け";
-        squares.forEach((square) => {
-            square.removeEventListener("click", handleSquareClick);
-        });
-    }
-}
-
-function handleSquareClick(event, index) {
+function handleSquareClick(event) {
+    const index = Array.from(squares).indexOf(event.target);
     console.log(squares[index]);
 
     // WebSocketサーバーとの通信
@@ -108,15 +65,26 @@ ws.addEventListener('message', (event) => {
                     squares[i].classList.add("x");
                 }
             }
-            judge();
             break;
         case 'reset':
+            reset.removeEventListener("click", handleResetClick);
             squares.forEach((square) => {
                 square.textContent = "";
                 square.classList.remove("o");
                 square.classList.remove("x");
-                comment.textContent = "Result: ";
+                comment.textContent = "";
             });
+            for (const square of squares) {
+                square.addEventListener("click", handleSquareClick);
+            }
+            break;
+        case 'result':
+            comment.textContent += message.message;
+            squares.forEach((square) => {
+                square.removeEventListener("click", handleSquareClick);
+            });
+            reset.style.display = "block";
+            reset.addEventListener("click", handleResetClick);
             break;
     }
 });
