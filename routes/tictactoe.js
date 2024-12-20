@@ -10,7 +10,7 @@ router.get('/', function (req, res, next) {
     if (!req.session.userId) {
         res.redirect('/');
     } else if (rooms[room].players.x.ws === "") {
-        res.render('wait.ejs', { title: 'マッチング待機', hostname: hostname, port: port });
+        res.render('wait.ejs', { title: 'tictactoe', hostname: hostname, port: port });
     } else {
         res.render('tictactoe.ejs', { title: 'tictactoe', hostname: hostname, port: port });
     }
