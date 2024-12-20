@@ -61,7 +61,7 @@ function handleSquareClick(event, index) {
     const json = JSON.stringify({ type: 'playing', index: index, player: player });
     ws.send(json);
 
-    console.log(`send: ${player}`);
+    console.log(`send: ${JSON.stringify(json)}`);
 }
 
 function handleResetClick() {
@@ -74,6 +74,10 @@ function handleResetClick() {
 
 ws.addEventListener('open', () => {
     console.log('Connected to server');
+    // tactactoeからの接続だと伝える。
+    // WebSocketサーバーとの通信
+    const json = JSON.stringify({ type: 'init', player: player });
+    ws.send(json);
 });
 
 ws.addEventListener('message', (event) => {
