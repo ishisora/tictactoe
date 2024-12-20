@@ -88,6 +88,10 @@ function createWebSocketServer(server, sessionMiddleware) {
                         rooms[room].states.squares = ['', '', '', '', '', '', '', '', ''];
                         rooms[room].states.nowPlayer = 'o';
                         break;
+                    case 'finish':
+                        rooms[room].players.o.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
+                        rooms[room].players.x.ws.send(JSON.stringify({ type: 'finish', message: '相手がゲームを終了しました。' }));
+                        break;
                 }
             });
         });

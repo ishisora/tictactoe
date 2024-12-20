@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+    <div>
+        <form action="/" method="post">
+            <label>あいことば
+                <input required type="text" name="keyword" placeholder="あいことばを入力" />
+            </label>
+            <input type="submit" value="マッチ" />
+        </form>
+    </div>
+    <div>
+        <%= message %>
+    </div>
+</body>
+
+</html>

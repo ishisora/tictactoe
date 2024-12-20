@@ -2,6 +2,7 @@ const board = document.querySelector(".board");
 const squares = document.querySelectorAll(".square");
 const comment = document.querySelector(".comment");
 const reset = document.querySelector(".reset");
+const finish = document.querySelector(".finish");
 const ws = new WebSocket(`ws://${hostname}:${port}`);
 
 for (const square of squares) {
@@ -24,6 +25,14 @@ function handleSquareClick(event) {
 function handleResetClick() {
     // WebSocketサーバーとの通信
     const json = JSON.stringify({ type: 'reset' });
+    ws.send(json);
+
+    console.log(`send: ${player}`);
+}
+
+function handleFinishClick() {
+    // WebSocketサーバーとの通信
+    const json = JSON.stringify({ type: 'finish' });
     ws.send(json);
 
     console.log(`send: ${player}`);
@@ -66,8 +75,19 @@ ws.addEventListener('message', (event) => {
                 }
             }
             break;
+        case 'result':
+            comment.textContent += message.message;
+            squares.forEach((square) => {
+                square.removeEventListener("click", handleSquareClick);
+            });
+            reset.style.display = "block";
+            reset.addEventListener("click", handleResetClick);
+            finish.style.display = "block";
+            finish.addEventListener("click", handleFinishClick);
+            break;
         case 'reset':
             reset.removeEventListener("click", handleResetClick);
+            finish.removeEventListener("click", handleFinishClick);
             squares.forEach((square) => {
                 square.textContent = "";
                 square.classList.remove("o");
@@ -78,14 +98,13 @@ ws.addEventListener('message', (event) => {
                 square.addEventListener("click", handleSquareClick);
             }
             break;
-        case 'result':
-            comment.textContent += message.message;
-            squares.forEach((square) => {
-                square.removeEventListener("click", handleSquareClick);
-            });
-            reset.style.display = "block";
-            reset.addEventListener("click", handleResetClick);
-            break;
+        case 'finish':
+            comment.textContent = message.message;
+            reset.removeEventListener("click", handleResetClick);
+            finish.removeEventListener("click", handleFinishClick);
+            reset.style.display = "none";
+            finish.style.display = "none";
+            break
     }
 });
 
